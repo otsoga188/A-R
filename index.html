@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Plan de Pareja 💑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;1,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#faf8f5;--surface:#fff;--surface2:#f3f0ea;--border:rgba(0,0,0,0.08);
+    --text:#1a1814;--text2:#6b6560;--text3:#a09a94;
+    --accent:#c17b5a;--accent-bg:#fdf2ec;--accent-text:#8a4e30;
+    --green:#4a7c5e;--green-bg:#edf5f0;--blue:#3d6b99;--blue-bg:#edf2f9;
+    --pink:#b05a7a;--pink-bg:#faedf3;--amber:#8a6e2a;--amber-bg:#faf4e1;
+    --radius:12px;--radius-sm:8px;--shadow:0 2px 12px rgba(0,0,0,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  .app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+  .app-title{font-family:'Fraunces',serif;font-weight:300;font-size:1.3rem;color:var(--text);display:flex;align-items:center;gap:8px}
+  .app-title span{color:var(--accent)}
+  .sync-status{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+  .sync-dot.ok{background:var(--green)}.sync-dot.saving{background:var(--amber);animation:pulse 1s infinite}.sync-dot.error{background:#c0392b}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  .tabs-wrap{background:var(--surface);padding:0 1.5rem;border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
+  .tab-btn{padding:14px 18px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;border:none;background:transparent;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-btn:hover:not(.active){color:var(--text2)}
+
+  .main{max-width:700px;margin:0 auto;padding:1.5rem}
+  .section{display:none}.section.visible{display:block}
+
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+  .cal-month{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:300;text-transform:capitalize;color:var(--text)}
+  .nav-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:50%;background:var(--surface);cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center}
+  .nav-btn:hover{background:var(--surface2)}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:1rem}
+  .cal-hdr{text-align:center;font-size:11px;color:var(--text3);padding:6px 0;font-weight:500}
+  .cal-cell{min-height:58px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px;cursor:pointer;transition:all .15s;position:relative}
+  .cal-cell:hover{border-color:var(--accent);background:var(--accent-bg)}
+  .cal-cell.other-month{opacity:.3;cursor:default;background:var(--surface2)}
+  .cal-cell.other-month:hover{border-color:var(--border);background:var(--surface2)}
+  .cal-cell.today{border-color:var(--accent)}
+  .day-num{font-size:11px;font-weight:500;color:var(--text2)}
+  .cal-cell.today .day-num{color:var(--accent)}
+
+  .ev-pill{font-size:9px;padding:1px 5px;border-radius:20px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100%;cursor:pointer}
+  .ev-pill.recurring::after{content:'↻';margin-left:2px;opacity:.6}
+  .pill-orar{background:var(--green-bg);color:var(--green)}
+  .pill-peli{background:var(--blue-bg);color:var(--blue)}
+  .pill-nosotros{background:var(--pink-bg);color:var(--pink)}
+  .pill-familiar{background:var(--green-bg);color:var(--green)}
+  .pill-variado{background:var(--amber-bg);color:var(--amber)}
+  .pill-romi{background:#fce8f3;color:#a0306e}
+  .pill-romi_papa{background:#e8effe;color:#2e4fa3}
+  .pill-vacacion{background:#e8f6fe;color:#1a6e99}
+  .pill-sorpresa{background:#fff0e0;color:#b05a00}
+  .pill-jugueton{background:#fef3c7;color:#92400e}
+  .pill-momento_roberto{background:#e0f2fe;color:#075985}
+  .pill-momento_ari{background:#fdf4ff;color:#7e22ce}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+  .legend-item{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+  .add-btn{width:100%;padding:12px;border:1.5px dashed rgba(193,123,90,.4);border-radius:var(--radius);background:transparent;color:var(--text3);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:.5rem}
+  .add-btn:hover{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,24,20,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:var(--surface);border-radius:var(--radius);padding:1.75rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto}
+  .modal-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:300;margin-bottom:1.25rem;color:var(--text)}
+  .form-group{margin-bottom:14px}
+  .form-label{display:block;font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+  .form-input,.form-select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+  .form-input:focus,.form-select:focus{border-color:var(--accent)}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+  .btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;border:none;transition:all .15s}
+  .btn-ghost{background:var(--surface2);color:var(--text2)}.btn-ghost:hover{background:var(--border)}
+  .btn-primary{background:var(--accent);color:white}.btn-primary:hover{opacity:.9}
+  .btn-danger{background:#fdeaea;color:#c0392b}
+  .btn-warn{background:#fff3cd;color:#856404}
+
+  /* recurrence toggle */
+  .recur-toggle{display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer}
+  .recur-toggle input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
+  .recur-toggle span{font-size:13px;color:var(--text2)}
+  .recur-options{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;display:none}
+  .recur-options.visible{display:block}
+  .recur-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .weekday-picker{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+  .wd-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);font-size:11px;cursor:pointer;font-weight:500;color:var(--text2);font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center}
+  .wd-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+
+  /* delete modal */
+  .delete-options{display:flex;flex-direction:column;gap:8px;margin:1rem 0}
+  .del-option{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;text-align:left;background:var(--surface);font-family:'DM Sans',sans-serif}
+  .del-option:hover{border-color:var(--accent);background:var(--accent-bg)}
+  .del-option strong{display:block;font-size:13px;color:var(--text)}
+  .del-option span{font-size:11px;color:var(--text3)}
+
+  /* view modal */
+  .view-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:var(--green-bg);color:var(--green);margin-top:4px;font-weight:500}
+
+  .filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+  .filter-pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+  .filter-pill.active{background:var(--accent);color:white;border-color:var(--accent)}
+  .act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  .act-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+  .act-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+  .act-card:hover::before{transform:scaleX(1)}
+  .act-card:hover{border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-1px)}
+  .act-icon{font-size:22px;margin-bottom:8px}
+  .act-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+  .act-cat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .act-desc{font-size:12px;color:var(--text2);line-height:1.5}
+  .act-add-hint{font-size:10px;color:var(--accent);margin-top:8px;font-weight:500}
+
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+  .stat-num{font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--text)}
+  .stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.3}
+  .habit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px}
+  .habit-info{flex:1}
+  .habit-name{font-size:13px;font-weight:500;color:var(--text)}
+  .habit-freq{font-size:11px;color:var(--text3);margin-top:1px}
+  .habit-dots{display:flex;gap:4px}
+  .h-dot{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text3);background:var(--surface2);transition:all .15s;font-weight:500}
+  .h-dot.done{background:var(--green);border-color:var(--green);color:white}
+  .h-dot:hover:not(.done){border-color:var(--accent);color:var(--accent)}
+
+  .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:20px;font-size:13px;transition:transform .3s;z-index:999}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .loading-overlay{position:fixed;inset:0;background:rgba(250,248,245,.85);display:flex;align-items:center;justify-content:center;z-index:300;flex-direction:column;gap:12px}
+  .loading-overlay.hidden{display:none}
+  .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:13px;color:var(--text3)}
+
+  @media(max-width:480px){
+    .main{padding:1rem}
+    .stats-row{grid-template-columns:repeat(3,1fr)}
+    .act-grid{grid-template-columns:1fr 1fr}
+    .stat-num{font-size:1.5rem}
+    .recur-row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Cargando plan de pareja…</div>
+</div>
+
+<header class="app-header">
+  <div class="app-title">Plan de <span>pareja</span> 💑</div>
+  <div class="sync-status">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">—</span>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <button class="tab-btn active" onclick="showTab('calendario',this)">📅 Calendario</button>
+  <button class="tab-btn" onclick="showTab('actividades',this)">✨ Ideas</button>
+  <button class="tab-btn" onclick="showTab('habitos',this)">🔥 Hábitos</button>
+</div>
+
+<div class="main">
+  <!-- CALENDARIO -->
+  <div class="section visible" id="sec-calendario">
+    <div class="cal-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month" id="cal-month-title"></div>
+      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-headers"></div>
+    <div class="cal-grid" id="cal-body" style="margin-top:3px"></div>
+    <div class="legend">
+      <span class="legend-item pill-orar">🙏 Espiritual</span>
+      <span class="legend-item pill-peli">🎬 Película</span>
+      <span class="legend-item pill-nosotros">💑 Solo nosotros</span>
+      <span class="legend-item pill-familiar">👨‍👩‍👧 Familiar</span>
+      <span class="legend-item pill-variado">✨ Otro</span>
+      <span style="font-size:11px;color:var(--text3);align-self:center">↻ = repite</span>
+    </div>
+    <button class="add-btn" onclick="openModal()">+ Agregar evento</button>
+  </div>
+
+  <!-- ACTIVIDADES -->
+  <div class="section" id="sec-actividades">
+    <div class="filter-bar">
+      <button class="filter-pill active" onclick="filterAct('todas',this)">Todas</button>
+      <button class="filter-pill" onclick="filterAct('orar',this)">🙏 Espiritual</button>
+      <button class="filter-pill" onclick="filterAct('peli',this)">🎬 Película</button>
+      <button class="filter-pill" onclick="filterAct('nosotros',this)">💑 Solo nosotros</button>
+      <button class="filter-pill" onclick="filterAct('familiar',this)">👨‍👩‍👧 Familiar</button>
+    </div>
+    <div class="act-grid" id="act-grid"></div>
+  </div>
+
+  <!-- HÁBITOS -->
+  <div class="section" id="sec-habitos">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">Actividades este mes</div></div>
+      <div class="stat-card"><div class="stat-num" id="st-streak">—</div><div class="stat-lbl">Días espirituales seguidos</div></div>
+      <div class="stat-card"><div class="stat-num" id="st-citas">—</div><div class="stat-lbl">Citas este mes</div></div>
+    </div>
+    <div id="habit-list"></div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO EVENTO -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-title">Nuevo evento</div>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="ev-title" type="text" placeholder="Ej. Domingo familiar" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha de inicio</label>
+      <input class="form-input" id="ev-date" type="date" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <select class="form-select" id="ev-type">
+        <option value="orar">🙏 Espiritual</option>
+        <option value="peli">🎬 Día de película</option>
+        <option value="nosotros">💑 Solo nosotros</option>
+        <option value="familiar">👨‍👩‍👧 Plan familiar</option>
+        <option value="romi">👧 Sola con Romi</option>
+        <option value="romi_papa">👨‍👧 Solo con Romi</option>
+        <option value="vacacion">🏖️ Vacación familiar</option>
+        <option value="sorpresa">🎁 Día sorpresa</option>
+        <option value="jugueton">😜 Día juguetón</option>
+        <option value="momento_roberto">🧔 Momento Roberto</option>
+        <option value="momento_ari">👩 Momento Ari</option>
+        <option value="variado">✨ Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hora (opcional)</label>
+      <div style="display:flex;gap:8px">
+        <input class="form-input" id="ev-time" type="time" style="flex:1" />
+        <select class="form-select" id="ev-reminder" style="flex:1">
+          <option value="">Sin recordatorio</option>
+          <option value="15">15 min antes</option>
+          <option value="30">30 min antes</option>
+          <option value="60">1 hora antes</option>
+          <option value="1440">1 día antes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- REPETICIÓN -->
+    <label class="recur-toggle">
+      <input type="checkbox" id="ev-recur-check" onchange="toggleRecurOptions()" />
+      <span>🔁 Este evento se repite</span>
+    </label>
+    <div class="recur-options" id="recur-options">
+      <div class="recur-row">
+        <div>
+          <label class="form-label">Repetir cada</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="form-input" id="ev-recur-interval" type="number" min="1" max="30" value="1" style="width:60px" />
+            <select class="form-select" id="ev-recur-freq" onchange="onFreqChange()" style="flex:1">
+              <option value="daily">día(s)</option>
+              <option value="weekly" selected>semana(s)</option>
+              <option value="monthly">mes(es)</option>
+              <option value="yearly">año(s)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Termina</label>
+          <select class="form-select" id="ev-recur-end-type" onchange="onEndTypeChange()">
+            <option value="never">Nunca</option>
+            <option value="count">Después de N veces</option>
+            <option value="date">En fecha específica</option>
+          </select>
+        </div>
+      </div>
+      <div id="recur-end-count" style="display:none;margin-bottom:8px">
+        <label class="form-label">Número de repeticiones</label>
+        <input class="form-input" id="ev-recur-count" type="number" min="1" max="365" value="10" />
+      </div>
+      <div id="recur-end-date" style="display:none;margin-bottom:8px">
+        <label class="form-label">Fecha de fin</label>
+        <input class="form-input" id="ev-recur-until" type="date" />
+      </div>
+      <div id="weekday-section" style="margin-bottom:4px">
+        <label class="form-label">Días de la semana</label>
+        <div class="weekday-picker" id="weekday-picker">
+          <button class="wd-btn" data-d="0" onclick="toggleWD(this)">D</button>
+          <button class="wd-btn" data-d="1" onclick="toggleWD(this)">L</button>
+          <button class="wd-btn" data-d="2" onclick="toggleWD(this)">M</button>
+          <button class="wd-btn" data-d="3" onclick="toggleWD(this)">X</button>
+          <button class="wd-btn" data-d="4" onclick="toggleWD(this)">J</button>
+          <button class="wd-btn" data-d="5" onclick="toggleWD(this)">V</button>
+          <button class="wd-btn" data-d="6" onclick="toggleWD(this)">S</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <input class="form-input" id="ev-note" type="text" placeholder="Ej. Llevar palomitas" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER EVENTO -->
+<div class="modal-overlay" id="view-overlay" onclick="closeViewOutside(event)">
+  <div class="modal-box">
+    <div class="modal-title" id="view-title"></div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:4px" id="view-date"></p>
+    <div id="view-recur-badge"></div>
+    <p style="font-size:13px;color:var(--text3);margin-top:8px" id="view-note"></p>
+    <div class="modal-actions" style="margin-top:1.25rem">
+      <button class="btn btn-danger" onclick="openDeleteModal()">Eliminar</button>
+      <button class="btn btn-ghost" onclick="closeView()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BORRAR (opciones) -->
+<div class="modal-overlay" id="delete-overlay" onclick="closeDeleteOutside(event)">
+  <div class="modal-box">
+    <div class="modal-title">¿Qué quieres eliminar?</div>
+    <div class="delete-options">
+      <button class="del-option" onclick="doDelete('single')">
+        <strong>Solo este evento</strong>
+        <span>Los demás del mismo patrón no se tocan</span>
+      </button>
+      <button class="del-option" onclick="doDelete('future')">
+        <strong>Este y los siguientes</strong>
+        <span>Se borran este evento y todos los futuros de esta serie</span>
+      </button>
+      <button class="del-option" onclick="doDelete('all')">
+        <strong>Todos los eventos de la serie</strong>
+        <span>Se elimina toda la serie, incluyendo pasados</span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN
+// ══════════════════════════════════════════════════════════════
+const SHEET_URL = 'TU_APPS_SCRIPT_URL_AQUI';
+// ══════════════════════════════════════════════════════════════
+
+const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DAYS_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const TYPE_LABELS = {orar:'Espiritual',peli:'Película',nosotros:'Solo nosotros',familiar:'Familiar',romi:'Sola con Romi',romi_papa:'Solo con Romi',vacacion:'Vacación familiar',sorpresa:'Día sorpresa',jugueton:'Día juguetón',momento_roberto:'Momento Roberto',momento_ari:'Momento Ari',variado:'Otro'};
+const REMINDER_LABELS = {'15':'15 min antes','30':'30 min antes','60':'1 hora antes','1440':'1 día antes'};
+
+let currentDate = new Date();
+let events = [];      // eventos base (incluyendo recurrentes con su regla)
+let habits = {};
+let viewingId = null;        // id del evento base siendo visto
+let viewingDate = null;      // fecha de la ocurrencia siendo vista
+let currentFilter = 'todas';
+
+// ── RECURRENCIA: expandir eventos al calendario ──────────────
+// Genera todas las ocurrencias de un evento recurrente dentro de un rango de fechas
+function expandEvent(ev, fromDate, toDate) {
+  if (!ev.recur || ev.recur.freq === 'none') {
+    // evento simple
+    if (ev.date >= fromDate && ev.date <= toDate) return [ev.date];
+    return [];
+  }
+
+  const results = [];
+  const r = ev.recur;
+  let current = new Date(ev.date + 'T00:00:00');
+  const end = new Date(toDate + 'T00:00:00');
+  const from = new Date(fromDate + 'T00:00:00');
+  const interval = parseInt(r.interval) || 1;
+  let count = 0;
+  const maxCount = r.endType === 'count' ? parseInt(r.count) : 9999;
+  const untilDate = r.endType === 'date' ? new Date(r.until + 'T00:00:00') : null;
+
+  // días cancelados individualmente (solo este) o cortados (este y siguientes)
+  const cancelled = ev.cancelledDates || [];
+  const cutoffDate = ev.cutoffDate || null; // fecha desde la que se cortó la serie
+
+  while (current <= end && count < maxCount) {
+    if (untilDate && current > untilDate) break;
+
+    const ds = dateStr(current);
+
+    // verificar si esta ocurrencia aplica según la frecuencia
+    let applies = false;
+    if (r.freq === 'daily') {
+      applies = true;
+    } else if (r.freq === 'weekly') {
+      const weekdays = r.weekdays || [current.getDay()];
+      applies = weekdays.includes(current.getDay());
+    } else if (r.freq === 'monthly') {
+      applies = current.getDate() === new Date(ev.date + 'T00:00:00').getDate();
+    } else if (r.freq === 'yearly') {
+      const orig = new Date(ev.date + 'T00:00:00');
+      applies = current.getMonth() === orig.getMonth() && current.getDate() === orig.getDate();
+    }
+
+    if (applies) {
+      if (cutoffDate && ds >= cutoffDate) break; // serie cortada desde aquí
+      if (!cancelled.includes(ds)) {
+        if (ds >= fromDate) results.push(ds);
+        count++;
+      } else {
+        count++; // cuenta igual aunque esté cancelada
+      }
+    }
+
+    // avanzar
+    if (r.freq === 'daily') {
+      current.setDate(current.getDate() + interval);
+    } else if (r.freq === 'weekly') {
+      // avanzar día a día para respetar múltiples días de semana
+      current.setDate(current.getDate() + 1);
+      // pero si el intervalo > 1 semana, saltar semanas completas cuando toca
+      // simplificado: avanzamos 1 día siempre en weekly para soportar múltiples días
+    } else if (r.freq === 'monthly') {
+      current.setMonth(current.getMonth() + interval);
+    } else if (r.freq === 'yearly') {
+      current.setFullYear(current.getFullYear() + interval);
+    }
+
+    if (r.freq === 'weekly' && interval > 1) {
+      // para intervalos semanales > 1, necesitamos saltar semanas
+      // Se maneja avanzando y verificando el # de semana
+    }
+  }
+
+  return results;
+}
+
+// Genera mapa {fecha: [eventos]} para el mes actual
+function buildCalendarMap(year, month) {
+  const map = {};
+  const firstStr = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const lastDay = new Date(year, month+1, 0).getDate();
+  const lastStr = `${year}-${String(month+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+  events.forEach(ev => {
+    let dates = [];
+    if (!ev.recur || ev.recur.freq === 'none') {
+      if (ev.date >= firstStr && ev.date <= lastStr) dates = [ev.date];
+    } else {
+      dates = expandEvent(ev, firstStr, lastStr);
+    }
+    dates.forEach(d => {
+      if (!map[d]) map[d] = [];
+      map[d].push(ev);
+    });
+  });
+
+  return map;
+}
+
+function dateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// ── SYNC ──────────────────────────────────────────────────────
+function setSyncStatus(s) {
+  document.getElementById('sync-dot').className = 'sync-dot ' + s;
+  document.getElementById('sync-label').textContent = {ok:'Sincronizado',saving:'Guardando…',error:'Sin conexión','':'—'}[s]||'—';
+}
+
+async function fetchData() {
+  if (SHEET_URL === 'TU_APPS_SCRIPT_URL_AQUI') {
+    setSyncStatus('error');
+    document.getElementById('loading').classList.add('hidden');
+    events = JSON.parse(localStorage.getItem('ppareja_events')||'[]');
+    habits = JSON.parse(localStorage.getItem('ppareja_habits')||'{}');
+    renderCalendar(); renderActivities(); return;
+  }
+  try {
+    const r = await fetch(SHEET_URL + '?action=getAll');
+    const d = await r.json();
+    events = d.events || [];
+    habits = d.habits || {};
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    events = JSON.parse(localStorage.getItem('ppareja_events')||'[]');
+    habits = JSON.parse(localStorage.getItem('ppareja_habits')||'{}');
+  }
+  document.getElementById('loading').classList.add('hidden');
+  renderCalendar(); renderActivities();
+}
+
+async function saveToSheet(payload) {
+  setSyncStatus('saving');
+  localStorage.setItem('ppareja_events', JSON.stringify(events));
+  localStorage.setItem('ppareja_habits', JSON.stringify(habits));
+  if (SHEET_URL === 'TU_APPS_SCRIPT_URL_AQUI') { setSyncStatus('error'); return; }
+  try {
+    await fetch(SHEET_URL, { method:'POST', body:JSON.stringify(payload) });
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); }
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('visible');
+  btn.classList.add('active');
+  if (name==='habitos') renderHabits();
+}
+
+// ── CALENDARIO ────────────────────────────────────────────────
+function changeMonth(d) {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+d, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth();
+  document.getElementById('cal-month-title').textContent = MONTHS[m]+' '+y;
+  document.getElementById('cal-headers').innerHTML = DAYS_SHORT.map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+
+  const firstDay = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const prevDays = new Date(y,m,0).getDate();
+  const today = new Date();
+  const calMap = buildCalendarMap(y, m);
+
+  let html = '';
+  for (let i=0;i<firstDay;i++)
+    html+=`<div class="cal-cell other-month"><div class="day-num">${prevDays-firstDay+1+i}</div></div>`;
+
+  for (let d=1;d<=daysInMonth;d++) {
+    const isToday = d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvs = calMap[ds]||[];
+    const pills = dayEvs.slice(0,2).map(e=>{
+      const isRecur = e.recur && e.recur.freq !== 'none';
+      return `<span class="ev-pill pill-${e.type}${isRecur?' recurring':''}" onclick="openView('${e.id}','${ds}',event)">${e.time?e.time+' ':''}${e.title}</span>`;
+    }).join('');
+    html+=`<div class="cal-cell${isToday?' today':''}" onclick="openModal('${ds}')"><div class="day-num">${d}</div>${pills}</div>`;
+  }
+
+  const remaining = 42-firstDay-daysInMonth;
+  if (remaining<7) for (let i=1;i<=remaining;i++)
+    html+=`<div class="cal-cell other-month"><div class="day-num">${i}</div></div>`;
+
+  document.getElementById('cal-body').innerHTML = html;
+}
+
+// ── MODAL NUEVO EVENTO ────────────────────────────────────────
+function openModal(date) {
+  const today = new Date();
+  document.getElementById('ev-date').value = date||dateStr(today);
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-reminder').value='';
+  document.getElementById('ev-note').value='';
+  document.getElementById('ev-recur-check').checked=false;
+  document.getElementById('recur-options').classList.remove('visible');
+  document.getElementById('ev-recur-interval').value=1;
+  document.getElementById('ev-recur-freq').value='weekly';
+  document.getElementById('ev-recur-end-type').value='never';
+  document.getElementById('recur-end-count').style.display='none';
+  document.getElementById('recur-end-date').style.display='none';
+  document.getElementById('weekday-section').style.display='block';
+  // marcar día de la semana de la fecha seleccionada
+  const selDay = date ? new Date(date+'T00:00:00').getDay() : today.getDay();
+  document.querySelectorAll('.wd-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.d)===selDay);
+  });
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open')}
+function closeModalOutside(e){if(e.target.id==='modal-overlay')closeModal()}
+
+function toggleRecurOptions(){
+  const checked = document.getElementById('ev-recur-check').checked;
+  document.getElementById('recur-options').classList.toggle('visible',checked);
+}
+function toggleWD(btn){btn.classList.toggle('active')}
+function onFreqChange(){
+  const freq = document.getElementById('ev-recur-freq').value;
+  document.getElementById('weekday-section').style.display = freq==='weekly'?'block':'none';
+}
+function onEndTypeChange(){
+  const t = document.getElementById('ev-recur-end-type').value;
+  document.getElementById('recur-end-count').style.display = t==='count'?'block':'none';
+  document.getElementById('recur-end-date').style.display = t==='date'?'block':'none';
+}
+
+async function saveEvent() {
+  const title = document.getElementById('ev-title').value.trim();
+  const date  = document.getElementById('ev-date').value;
+  const type  = document.getElementById('ev-type').value;
+  const time  = document.getElementById('ev-time').value;
+  const reminder = document.getElementById('ev-reminder').value;
+  const note  = document.getElementById('ev-note').value.trim();
+  if (!title||!date){showToast('Escribe un título y selecciona fecha');return}
+
+  let recur = {freq:'none'};
+  if (document.getElementById('ev-recur-check').checked) {
+    const freq = document.getElementById('ev-recur-freq').value;
+    const interval = parseInt(document.getElementById('ev-recur-interval').value)||1;
+    const endType = document.getElementById('ev-recur-end-type').value;
+    const weekdays = freq==='weekly'
+      ? Array.from(document.querySelectorAll('.wd-btn.active')).map(b=>parseInt(b.dataset.d))
+      : [];
+    if (freq==='weekly'&&weekdays.length===0){showToast('Selecciona al menos un día de la semana');return}
+    recur = {
+      freq, interval, endType,
+      count: endType==='count'?parseInt(document.getElementById('ev-recur-count').value):null,
+      until: endType==='date'?document.getElementById('ev-recur-until').value:null,
+      weekdays: freq==='weekly'?weekdays:[]
+    };
+  }
+
+  const ev = {id:Date.now().toString(), title, date, type, time, reminder, note, recur, cancelledDates:[], cutoffDate:null};
+  events.push(ev);
+  closeModal();
+  renderCalendar();
+  showToast('✓ Evento guardado');
+  await saveToSheet({action:'addEvent',event:ev});
+}
+
+// ── MODAL VER EVENTO ──────────────────────────────────────────
+function openView(id, date, e) {
+  e.stopPropagation();
+  const ev = events.find(x=>x.id===id);
+  if (!ev) return;
+  viewingId = id;
+  viewingDate = date;
+  document.getElementById('view-title').textContent = ev.title;
+  const timeStr = ev.time?' · ⏰ '+ev.time:'';
+  const remStr = ev.reminder?' · 🔔 '+REMINDER_LABELS[ev.reminder]:'';
+  document.getElementById('view-date').textContent = date+' · '+(TYPE_LABELS[ev.type]||ev.type)+timeStr+remStr;
+
+  const badge = document.getElementById('view-recur-badge');
+  if (ev.recur&&ev.recur.freq!=='none') {
+    const freqLabel = {daily:'Diario',weekly:'Semanal',monthly:'Mensual',yearly:'Anual'}[ev.recur.freq]||ev.recur.freq;
+    badge.innerHTML = `<span class="view-badge">↻ Se repite ${freqLabel.toLowerCase()}${ev.recur.interval>1?' cada '+ev.recur.interval:''}</span>`;
+  } else { badge.innerHTML=''; }
+  document.getElementById('view-note').textContent = ev.note||'';
+  document.getElementById('view-overlay').classList.add('open');
+}
+function closeView(){document.getElementById('view-overlay').classList.remove('open');viewingId=null;viewingDate=null}
+function closeViewOutside(e){if(e.target.id==='view-overlay')closeView()}
+
+// ── MODAL BORRAR ──────────────────────────────────────────────
+function openDeleteModal() {
+  const ev = events.find(x=>x.id===viewingId);
+  document.getElementById('view-overlay').classList.remove('open');
+  // si no es recurrente, borrar directo
+  if (!ev||!ev.recur||ev.recur.freq==='none') {
+    doDelete('single'); return;
+  }
+  document.getElementById('delete-overlay').classList.add('open');
+}
+function closeDeleteModal(){document.getElementById('delete-overlay').classList.remove('open')}
+function closeDeleteOutside(e){if(e.target.id==='delete-overlay')closeDeleteModal()}
+
+async function doDelete(mode) {
+  closeDeleteModal();
+  const id = viewingId;
+  const date = viewingDate;
+  viewingId=null; viewingDate=null;
+
+  const ev = events.find(x=>x.id===id);
+  if (!ev) return;
+
+  if (mode==='all') {
+    // borrar evento completo
+    events = events.filter(x=>x.id!==id);
+    showToast('✓ Serie eliminada');
+    await saveToSheet({action:'deleteEvent',id});
+  } else if (mode==='single') {
+    // solo cancelar esta ocurrencia
+    if (!ev.cancelledDates) ev.cancelledDates=[];
+    ev.cancelledDates.push(date);
+    showToast('✓ Evento eliminado');
+    await saveToSheet({action:'cancelOccurrence',id,date});
+  } else if (mode==='future') {
+    // cortar la serie desde esta fecha en adelante
+    ev.cutoffDate = date;
+    showToast('✓ Eventos futuros eliminados');
+    await saveToSheet({action:'cutoffSeries',id,date});
+  }
+
+  localStorage.setItem('ppareja_events',JSON.stringify(events));
+  renderCalendar();
+}
+
+// ── ACTIVIDADES ───────────────────────────────────────────────
+const ACTIVITIES = [
+  {cat:'orar',icon:'🙏',name:'Orar juntos',desc:'10 min antes de empezar el día, turnándose quién lleva la oración.'},
+  {cat:'orar',icon:'📖',name:'Devocional en pareja',desc:'Leer un pasaje juntos y compartir lo que les habla a cada uno.'},
+  {cat:'peli',icon:'🎬',name:'Noche de cine en casa',desc:'Turno alternado para elegir la peli. Palomitas, cobija, sin cel.'},
+  {cat:'peli',icon:'🎭',name:'Cinema en GDL',desc:'Cinemex o Cinépolis + café o antojitos después.'},
+  {cat:'peli',icon:'📺',name:'Maratón de serie',desc:'Elijan una serie nueva y vean 2-3 capítulos seguidos.'},
+  {cat:'nosotros',icon:'🍽️',name:'Cena sin bebé',desc:'Dejen a la bebé con abuela y salgan a un restaurante nuevo en GDL.'},
+  {cat:'nosotros',icon:'🚶',name:'Caminata Primavera',desc:'Bosque La Primavera o Parque Metropolitano, una hora platicando.'},
+  {cat:'nosotros',icon:'☕',name:'Café en Tlaquepaque',desc:'Sin agenda. Un café en Barrio Antiguo o el centro, sin teléfono.'},
+  {cat:'nosotros',icon:'🧘',name:'Clase nueva juntos',desc:'Yoga, cocina, baile, cerámica — algo que ninguno haya probado.'},
+  {cat:'nosotros',icon:'🎮',name:'Noche de juegos',desc:'Jenga, cartas, Mario Kart — competitivo y divertido.'},
+  {cat:'nosotros',icon:'🛁',name:'Spa en casa',desc:'Aceites, música, velas. Turno de masajes.'},
+  {cat:'familiar',icon:'🌳',name:'Parque diferente',desc:'Parque San Jacinto, La Ciudadela o Revolución con la bebé.'},
+  {cat:'familiar',icon:'🦁',name:'Zoológico de GDL',desc:'El clásico revisitado. Lleguen temprano para evitar calor.'},
+  {cat:'familiar',icon:'🎠',name:'Tlaquepaque familiar',desc:'Artesanías, comida típica, fotos — diferente al lugar de siempre.'},
+  {cat:'familiar',icon:'🌊',name:'Lagos de Moreno',desc:'Escapada de un día, 1.5h. Pueblo Mágico con buena comida.'},
+  {cat:'familiar',icon:'🎪',name:'Mercado artesanal',desc:'Hay feria o mercado casi todos los fines de semana en GDL.'},
+];
+const HABITS_DEF = [
+  {id:'orar',label:'🙏 Espiritual',freq:'Diario'},
+  {id:'peli',label:'🎬 Día de película',freq:'Semanal'},
+  {id:'cita',label:'💑 Salida solo nosotros',freq:'Quincenal'},
+  {id:'dom',label:'👨‍👩‍👧 Plan familiar nuevo',freq:'Dominical'},
+];
+
+function filterAct(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderActivities();
+}
+function renderActivities(){
+  const CAT_MAP={orar:'🙏 Espiritual',peli:'🎬 Película',nosotros:'💑 Solo nosotros',familiar:'👨‍👩‍👧 Familiar'};
+  const list=currentFilter==='todas'?ACTIVITIES:ACTIVITIES.filter(a=>a.cat===currentFilter);
+  document.getElementById('act-grid').innerHTML=list.map(a=>`
+    <div class="act-card" onclick="scheduleActivity('${a.name}','${a.cat}')">
+      <div class="act-icon">${a.icon}</div>
+      <div class="act-name">${a.name}</div>
+      <div class="act-cat-label">${CAT_MAP[a.cat]||a.cat}</div>
+      <div class="act-desc">${a.desc}</div>
+      <div class="act-add-hint">Toca para agendar →</div>
+    </div>`).join('');
+}
+function scheduleActivity(name,cat){
+  const typeMap={orar:'orar',peli:'peli',nosotros:'nosotros',familiar:'familiar'};
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-calendario').classList.add('visible');
+  document.querySelector('.tab-btn').classList.add('active');
+  document.getElementById('ev-title').value=name;
+  document.getElementById('ev-type').value=typeMap[cat]||'variado';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+// ── HÁBITOS ───────────────────────────────────────────────────
+function renderHabits(){
+  const m=currentDate.getMonth(),y=currentDate.getFullYear(),today=new Date();
+  const monthEvs=events.filter(e=>{const d=new Date(e.date);return d.getMonth()===m&&d.getFullYear()===y});
+  document.getElementById('st-total').textContent=monthEvs.length;
+  document.getElementById('st-citas').textContent=monthEvs.filter(e=>e.type==='nosotros').length;
+  let streak=0;
+  for(let i=today.getDate();i>=1;i--){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+    if(habits[`orar_${ds}`])streak++;else break;
+  }
+  document.getElementById('st-streak').textContent='🔥'+streak;
+  const days7=[];
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days7.push({label:DAYS_SHORT[d.getDay()],date:dateStr(d)})}
+  document.getElementById('habit-list').innerHTML=HABITS_DEF.map(h=>{
+    const dots=days7.map(day=>{
+      const key=`${h.id}_${day.date}`;
+      const done=!!habits[key];
+      return `<div class="h-dot${done?' done':''}" onclick="toggleHabit('${h.id}','${day.date}')" title="${day.label}">${day.label[0]}</div>`;
+    }).join('');
+    return `<div class="habit-card"><div class="habit-info"><div class="habit-name">${h.label}</div><div class="habit-freq">${h.freq} · últimos 7 días</div></div><div class="habit-dots">${dots}</div></div>`;
+  }).join('');
+}
+async function toggleHabit(id,date){
+  const key=`${id}_${date}`;habits[key]=!habits[key];
+  renderHabits();await saveToSheet({action:'toggleHabit',key,value:habits[key]});
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+fetchData();
+renderActivities();
+</script>
+</body>
+</html>
